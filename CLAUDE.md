@@ -1,0 +1,219 @@
+# REGOLE SISTEMA PERSONALE GIANMARCO
+
+## PROCEDURA OBBLIGATORIA PRIMA DI OGNI MODIFICA
+
+### Step 0: Leggi TUTTO
+1. Leggi questo file CLAUDE.md interamente
+2. Leggi RIEPILOGO.md per lo stato attuale
+3. Leggi TUTTE le skill disponibili pertinenti
+
+### Step 1: Consulta le skill pertinenti
+
+**QUANDO LEGGERE LE SKILL (obbligatorio):**
+- Prima di creare/modificare componenti UI → `frontend-design`
+- Prima di modificare workflow n8n → `n8n-workflow-patterns` + `n8n-code-javascript`
+- Prima di debug complesso → `systematic-debugging`
+- Per fix semplici (config, bug singolo) → non necessario
+
+**Per workflow n8n** — prima di toccare QUALSIASI workflow:
+- n8n-workflow-patterns, n8n-node-configuration, n8n-code-javascript
+- n8n-validation-expert, n8n-expression-syntax, n8n-mcp-tools-expert
+
+**Per frontend webapp** — prima di creare/modificare pagine o componenti:
+- Leggere e seguire `~/.claude/plugins/marketplaces/claude-plugins-official/plugins/frontend-design/skills/frontend-design/SKILL.md` per design production-grade
+- Usare `systematic-debugging` per bug UI
+- Usare `verification-before-completion` prima di dichiarare "fatto"
+
+**Per qualsiasi implementazione** — seguire le skill superpowers:
+- `brainstorming` → `writing-plans` → `subagent-driven-development` o `executing-plans`
+- `test-driven-development` per ogni feature/bugfix
+- `requesting-code-review` prima di merge
+
+### Step 2: Diagnostica PRIMA di fixare
+- Leggi l'esecuzione n8n per vedere l'errore ESATTO
+- Identifica il nodo che fallisce e il messaggio di errore
+- Traccia il flusso dati nodo per nodo
+- NON proporre fix senza aver letto l'errore reale
+
+### Step 3: Verifica conflitti PRIMA di implementare
+- Controlla che la modifica non rompa nodi esistenti
+- Verifica che i nodi disconnessi vengano rimossi o riconnessi
+- Usa `validateOnly: true` quando possibile
+- Controlla che TUTTI i dati seed necessari esistano nel DB
+
+### Step 4: Implementa con checklist
+Per OGNI nodo n8n aggiunto o modificato, verificare:
+- [ ] Nodo Telegram ha `chatId: "488886504"` hardcoded
+- [ ] Nodo HTTP GET ha `alwaysOutputData: true`
+- [ ] Code node NON usa `$helpers`, `fetch()`, o `require()`
+- [ ] Code node usa solo `$input`, `$json`, `$('Nodo')`, `$getWorkflowStaticData`
+- [ ] Per HTTP calls nei Code node: usa nodi HTTP Request SEPARATI
+- [ ] Switch/If node: connections verificate per ogni branch
+- [ ] Nodi Notion: usano format proprietà semplificato (property_xxx)
+- [ ] Nodi HTTP Supabase: hanno apikey + Authorization + Content-Type headers
+
+### Step 5: Verifica post-deploy
+- Controlla che il workflow sia attivo
+- Chiedi all'utente di testare il comando specifico
+- Leggi l'esecuzione per confermare successo
+
+## ERRORI NOTI DA NON RIPETERE
+
+### Code nodes n8n
+- `$helpers.httpRequest()` → NON ESISTE. Usa nodi HTTP Request separati
+- `fetch()` → NON DISPONIBILE nel runtime n8n. Usa nodi HTTP Request
+- `require()` → BLOCCATO da n8n. Mai usare
+- `$json` in Code node "Run Once for All Items" → NON funziona per item singolo. Usa `$input.first().json`
+
+### HTTP Request nodes
+- Se il GET restituisce 0 risultati → il nodo successivo NON viene eseguito
+  FIX: aggiungere `alwaysOutputData: true` al nodo GET
+- Array vuoto PostgREST: `"All object keys must match"` → tutti gli oggetti nel batch devono avere le stesse chiavi
+- HTTP GET Supabase ritorna N items separati in n8n → Code node DEVE usare `$input.all().map(i => i.json)` MAI `$input.first().json`
+- Per referenziare output di nodo precedente non diretto: `$('NomeNodo').all().map(i => i.json)` MAI `.first()`
+
+### Telegram nodes
+- chatId DINAMICO: usare `$('Classifica').first().json.chat_id` in tutti i nodi Telegram
+- ECCEZIONE: Report Serale (cron, nessun utente in input) → hardcoded 488886504
+- I nodi Telegram creati da zero: SEMPRE impostare chatId dinamico
+
+### Notion nodes
+- L'auto-sanitization di n8n corrompe i propertiesUi del nodo Notion (specialmente URL)
+  FIX: usare HTTP Request diretto all'API Notion invece del nodo nativo per proprietà URL
+- I nomi proprietà in formato semplificato sono `property_nome_campo` (tutto lowercase con underscore)
+- Le formule Notion sono READ-ONLY — non scrivibili via API
+
+### Switch nodes
+- Il Switch v3.4 crasha con operatore `object exists` su messaggi con array
+  FIX: usare `{{ !!$json.field }}` con `boolean equals true`
+- `looseTypeValidation: true` necessario per gestire campi undefined
+
+### Supabase REST API
+- DDL (CREATE TABLE, ALTER TABLE) NON possibile via REST API anon key — serve SQL Editor
+- Le viste (views) richiedono DDL per essere create
+- `check constraint` è case-sensitive (es. `tipo` deve essere minuscolo: 'reel' non 'Reel')
+
+## REGOLE ASSOLUTE
+- "Segui procedura" / "segui le regole nostre" = esegui Step 0-5 della PROCEDURA OBBLIGATORIA sopra
+- Usa subagent (Agent tool) dove possibile per parallelizzare ricerca, diagnostica, e task indipendenti
+- Per bug webapp: diagnostica con curl/log PRIMA di toccare codice
+- NON usare require() nei Code node
+- NON usare OpenAI o Anthropic API — solo Groq
+- Spiega la soluzione PRIMA di implementare, aspetta conferma
+- Usa nodi HTTP Request nativi per TUTTE le chiamate HTTP
+- $vars NON funziona (licenza a pagamento) — chiavi hardcoded nei nodi
+- File audio Telegram sono .oga → rinominare a .ogg PRIMA di Whisper
+- Vocali: Supabase Edge Function "whisper-proxy" fa da proxy → Groq Whisper (bypassa bug gzip multipart n8n)
+- Catena voce: Rinomina Audio → Whisper Proxy (HTTP Request binary a Edge Function) → Prepara Voice
+- NON usare nodo HTTP Request multipart per upload audio — bug ECONNRESET hardcoded in n8n
+- Conferma Telegram: usare $('Nodo').first().json, MAI $json direttamente
+- Classificatore: parseDate() supporta oggi/domani/dopodomani/giorni settimana/date assolute italiane con timezone CET
+- Note e Task finiscono entrambi in tabella `activities` — colonna `activity_type` ('task'/'nota') da aggiungere via DDL
+- Railway usa UTC — variabile `GENERIC_TIMEZONE=Europe/Rome` necessaria per cron corretti
+
+## WORKFLOW N8N ATTIVI
+
+| Workflow | ID | Nodi | Trigger |
+|----------|-----|------|---------|
+| Telegram -> Videogioco v5 | mJ3FwZFyNXToRnS0 | 97 | Webhook Telegram (100% Supabase, vocali via Edge Function proxy) |
+| Reset Abitudini | 8CufFeuKa2hR1UqD | 5 | Cron 00:01 |
+| Morning Briefing | YxHPnGM0B57TMkST | 6 | Cron 08:00 |
+| Penalita Mezzanotte | GSg0ZoZ3rOtIAvkC | 4 | Cron 23:45 |
+| Check Achievement | VoldFmQJ8gpfIZg8 | 4 | Ogni ora |
+
+## COMANDI BOT TELEGRAM (21 comandi, tutti funzionanti)
+
+| Comando | Tipo | Esempio |
+|---------|------|---------|
+| status | status | "come sto?" |
+| oggi | oggi | "oggi", "cosa devo fare" |
+| streak | streak | "streak" |
+| monete | monete | "monete", "saldo" |
+| abitudine | abitudine | "ho fatto meditazione" |
+| completamento | completamento_task | "ho finito il report" |
+| task | task | "ricordami di chiamare" |
+| nota | nota | "nota: idea per il libro" |
+| link | ispirazione | qualsiasi URL |
+| foto | foto | foto con caption |
+| vizio | vizio | "ho fumato", "ho sprecato" |
+| focus | focus | "focus 25", "pomodoro karta 45 min" |
+| shop | shop | "negozio", "cosa posso comprare" |
+| acquisto | acquisto | "compra serata netflix" |
+| mood | mood | "mi sento 4", "umore 3" |
+| gratitudine | gratitudine | "sono grato per...", "grato" |
+| network | network | "ho parlato con Mario" |
+| cga | cga | "cga: aggiornamento cantiere" |
+| revenue | revenue | "nuovo cliente karta: Bar Roma, 50 euro mese" |
+| nuova abitudine | nuova_abitudine | "nuova abitudine: Yoga, 30 XP" |
+| unknown | AI fallback | qualsiasi testo non riconosciuto → prompt 1/2/3 |
+
+## SCHEMA SUPABASE
+
+**Progetto:** hluyhqyawmvooarusclt
+**URL:** https://hluyhqyawmvooarusclt.supabase.co
+
+### Tabelle v1 (operative, con dati)
+characters (1), level_config (50), life_areas (9), habits (13),
+projects (6), activities (15+), xp_log (34+), habit_tracker (13),
+inspiration (9+)
+
+### Tabelle v2 (operative, con dati)
+shop_items (5), shop_purchases, achievements (8), weekly_challenges,
+focus_sessions, mood_log, journal, network_contacts,
+revenue_log, books, vices_log, streak_penalties,
+cga_log, habit_reminders, collaborators
+
+### Viste
+v_character_stats, v_area_progress, v_xp_daily
+
+## DATABASE NOTION (backup/consultazione — Supabase è il DB primario)
+- Buone Abitudini: 29b8782b-2fe0-818f-ab73-df3af7debf45
+- Registro de Actividad: 29b8782b-2fe0-81c2-a7b0-cf73f0130b82
+- personaje new: 29b8782b-2fe0-813a-996c-ed1820699f49
+- Attivita: 29b8782b-2fe0-81ba-8adc-f89d69650cee
+- Ispirazione: 8b9c4746-c9a7-4b6e-a4a9-9d4d262c33d8
+- Personaje page ID: 29b8782b-2fe0-81a2-b2ed-d19f6800fe17
+
+## COSTANTI
+- Telegram chat_id: 488886504
+- Supabase character_id: a1b2c3d4-0000-0000-0000-000000000001
+- Telegram credential ID: X2hYduq0bgSvYQvK
+- Notion credential ID: TFJcbIMzvi6tlyOB
+
+## WEBAPP
+
+### Setup
+- Directory: ~/Desktop/SISTEMA/videogioco/webapp/
+- Tech: React + Vite + TypeScript + Tailwind CSS 4 + Framer Motion + Recharts
+- Dev: `npm run dev`
+- Build: `npm run build` (tsc + vite build)
+- Estetica: Cyberpunk Neon Dark (#0a0a0f bg, #00f0ff cyan, #ff00aa magenta, #ffb800 amber)
+
+### Struttura file
+```
+src/
+├── main.tsx, App.tsx (router)
+├── lib/supabase.ts (client + tutti i fetcher/action)
+├── lib/mock-data.ts (fallback se no .env)
+├── components/ (Layout, Sidebar, SettingsDrawer, XPBar, HabitCard, StatCard, Character, ecc.)
+├── pages/ (Dashboard, Quests, LifeAreas, Inspiration, Statistics, Shop, Projects)
+└── hooks/ (useAnimatedValue)
+```
+
+### 8 pagine
+Dashboard, Missioni, Aree Vita, Ispirazione, Statistiche, Negozio, Progetti, Obiettivi
+
+### Regole
+- TUTTE le pagine leggono da Supabase (zero mock nel flusso attivo)
+- Ogni nuova pagina DEVE usare fetchXxx() da supabase.ts, MAI dati hardcoded
+- Acquisti webapp: POST shop_purchases + POST xp_log (coins_earned negativo) per deduction
+- SettingsDrawer: solo CRUD abitudini (progetti hanno pagina dedicata)
+- Per nuove pagine/componenti UI: invocare skill `frontend-design` per design production-grade
+
+## FINE SESSIONE — OBBLIGATORIO
+```bash
+git -C ~/Desktop/SISTEMA/videogioco add docs/ .claude/ webapp/src/ supabase/ scripts/
+git -C ~/Desktop/SISTEMA/videogioco commit -m "sessione $(date +%Y-%m-%d): [descrizione breve]"
+git -C ~/Desktop/SISTEMA/videogioco push
+```
+MOTIVO: Claude.ai legge i file raw da GitHub per avere sempre il contesto aggiornato.
