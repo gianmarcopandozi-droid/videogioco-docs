@@ -109,7 +109,9 @@ Per OGNI nodo n8n aggiunto o modificato, verificare:
 - Conferma Telegram: usare $('Nodo').first().json, MAI $json direttamente
 - Classificatore: parseDate() supporta oggi/domani/dopodomani/giorni settimana/date assolute italiane con timezone CET
 - Note e Task finiscono entrambi in tabella `activities` — colonna `activity_type` ('task'/'nota') da aggiungere via DDL
-- Railway usa UTC — variabile `GENERIC_TIMEZONE=Europe/Rome` necessaria per cron corretti
+- Railway usa UTC — convertire TUTTI i cron manualmente (GENERIC_TIMEZONE non funziona). CEST=UTC+2, CET=UTC+1
+- Dopo OGNI import/deploy su Railway: testare TUTTI i workflow cron leggendo le esecuzioni entro 24h
+- Dopo OGNI modifica a Code node: verificare che NON usi $helpers, fetch(), require()
 
 ## WORKFLOW N8N ATTIVI
 
