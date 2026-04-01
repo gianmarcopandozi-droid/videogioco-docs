@@ -109,9 +109,36 @@ Per OGNI nodo n8n aggiunto o modificato, verificare:
 - Whisper trascrive nomi tool in modo fonetico (Epify→Apify, Cloud→Claude). FIX: post-processing con dizionario di replace nel nodo Parse Risultato, NON nel prompt Groq (il modello piccolo lo ignora)
 - Groq LLaMA 8B fa riassunti generici. Usare 70B (`llama-3.3-70b-versatile`) per link analysis
 
+### Edge Functions
+- whisper-proxy richiede header `x-proxy-token` — senza token ritorna 401
+- Dopo OGNI deploy Edge Function: verificare che il secret sia configurato con `supabase secrets list`
+- Le Edge Functions per scritture webapp usano service_role key internamente, MAI anon key
+
 ### Webapp
 - Inizializzare state con `[]` o `null`, MAI con mock data — causa flash di contenuto finto
 - Filtri persona: basarli sulla tabella `collaborators` per progetto, NON sulle task assegnate — altrimenti non appaiono collaboratori senza task
+
+## SICUREZZA (aggiornato 2 Aprile 2026)
+
+### RLS Supabase
+- RLS e' SELECT-ONLY per anon key su tutte le 26 tabelle (script: `supabase/fix-rls-select-only.sql`)
+- La webapp puo solo LEGGERE con anon key — le scritture passano per Edge Functions
+- n8n DEVE usare SERVICE_ROLE KEY (non anon key) per le scritture al DB
+- Service_role key bypassa RLS completamente
+
+### whisper-proxy Edge Function
+- Protetta con header `x-proxy-token` (secret in Supabase secrets: WHISPER_PROXY_SECRET)
+- I nodi n8n che chiamano whisper-proxy DEVONO includere header `x-proxy-token`
+- Senza token valido la Edge Function ritorna 401
+
+### Webhook Telegram
+- Configurato con `secret_token` nel setWebhook
+- Il workflow n8n verifica `x-telegram-bot-api-secret-token` header
+- Richieste senza secret vengono scartate (previene command injection)
+
+### Script di fix
+- `scripts/fix-security.sh` — genera token e mostra comandi per tutti e 3 i fix
+- `supabase/fix-rls-select-only.sql` — script SQL per RLS (eseguire in SQL Editor)
 
 ## REGOLE ASSOLUTE
 - "Segui procedura" / "segui le regole nostre" = esegui Step 0-5 della PROCEDURA OBBLIGATORIA sopra

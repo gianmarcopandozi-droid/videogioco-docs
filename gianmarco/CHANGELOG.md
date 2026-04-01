@@ -76,6 +76,32 @@
 - Docs setup Francesco + Claude.ai
 - Pulizia: 20 duplicati inspiration + 9 task vecchie
 
+## 2026-04-02 (notte) — Sessione 5: Security Hardening + Antigravity Audit
+
+### Audit completi con Antigravity (Claude Opus + Gemini)
+- Audit Webapp: 10 problemi trovati (2 CRITICI, 3 ALTI, 4 MEDI, 1 BASSO)
+- Audit Sicurezza: 26/26 tabelle RLS ESPOSTE, whisper-proxy senza auth, webhook senza secret
+- Audit Architettura: SPOF mapping, costi proiettati, roadmap prioritizzata
+- Vecchio SECURITY-AUDIT.md corretto (conteneva informazioni false su RLS)
+
+### Security fixes preparati
+- Script SQL `supabase/fix-rls-select-only.sql` — RLS SELECT-only su 26 tabelle
+- Auth aggiunta a whisper-proxy Edge Function (header x-proxy-token)
+- Script `scripts/fix-security.sh` — genera token e guida i 3 fix
+- CLAUDE.md aggiornato con sezione SICUREZZA completa
+
+### Da completare prossima sessione
+- Configurare MCP n8n con URL Railway (serve API key)
+- Eseguire script RLS in Supabase SQL Editor
+- Deploy Edge Function con secret
+- Aggiungere secret_token al webhook Telegram
+- Cambiare nodi n8n da anon key a service_role key
+
+### Documenti aggiornati
+- docs/SECURITY-AUDIT.md — riscritto con risultati reali
+- docs/ANALISI_ARCHITETTURALE.md — generato da Antigravity
+- .claude/CLAUDE.md — sezione SICUREZZA + regole Edge Functions
+
 ## 2026-04-01 (sera) — Sessione 4c
 - Fix achievements 400 (order by name, not created_at)
 - Fix LIVELLO 0 flash (loading skeleton completo su Dashboard)
