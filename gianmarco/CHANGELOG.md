@@ -56,3 +56,22 @@
 - Fix titolo "Instagram" → summary/caption nel PATCH Supabase
 - Webapp Ispirazione: filtri, ricerca, edit inline, tool badges
 - Piano per prossima sessione: Groq Vision per screenshot video + lista spesa
+
+## 2026-04-01 (pomeriggio) — Sessione 4b
+- Kanban board: 3 colonne Da fare/In corso/Fatto con drag & drop
+- Campo assigned_to: assegnazione task a collaboratori
+- Filtro persona per progetto (basato su tabella collaborators)
+- 16 task inserite (7 Karta + 9 VisitLenola) con assegnazioni
+- Progetti aggiornati con description e keywords completi
+- Edit/elimina collaboratori dalla pagina Progetti
+- Fix classificatore: link early return (evita match "status" nell'HTML)
+- Fix Link Analyzer: continueOnError su Whisper per video >25MB
+- Fix duplicati: UPSERT su inspiration con UNIQUE url, messaggio "già salvato"
+- Groq 70B per riassunti link (era 8B)
+- Post-processing nomi tool (Epify→Apify, Cloud→Claude)
+- parent_project colonna: CGA→Karta, Lenola Card→VisitLenola
+- Fix Yoga: emoji 🧘 + area Salute Fisica
+- Security audit completo pre-setup Francesco
+- Seed Francesco + script setup aggiornato con sed token
+- Docs setup Francesco + Claude.ai
+- Pulizia: 20 duplicati inspiration + 9 task vecchie
