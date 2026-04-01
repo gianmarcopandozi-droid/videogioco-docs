@@ -239,8 +239,18 @@ Non aspettare il commit di fine sessione.
 
 ## FINE SESSIONE — OBBLIGATORIO
 ```bash
+# 1. Push repo privato
 git -C ~/Desktop/SISTEMA/videogioco add docs/ .claude/ webapp/src/ supabase/ scripts/
 git -C ~/Desktop/SISTEMA/videogioco commit -m "sessione $(date +%Y-%m-%d): [descrizione breve]"
 git -C ~/Desktop/SISTEMA/videogioco push
+
+# 2. Sync repo pubblico docs (per Claude.ai)
+cd /tmp/videogioco-docs && git pull
+cp ~/Desktop/SISTEMA/videogioco/docs/RIEPILOGO.md gianmarco/
+cp ~/Desktop/SISTEMA/videogioco/docs/BLOCCO.md gianmarco/
+cp ~/Desktop/SISTEMA/videogioco/docs/CHANGELOG.md gianmarco/
+cp ~/Desktop/SISTEMA/videogioco/.claude/CLAUDE.md gianmarco/
+git add . && git commit -m "sync: $(date +%Y-%m-%d)" && git push
 ```
-MOTIVO: Claude.ai legge i file raw da GitHub per avere sempre il contesto aggiornato.
+MOTIVO: Claude.ai legge i file raw da GitHub. ENTRAMBI i push sono obbligatori.
+Fare ANCHE dopo ogni commit importante durante la sessione, non solo alla fine.
