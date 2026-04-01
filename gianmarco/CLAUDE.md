@@ -232,6 +232,12 @@ Dashboard, Missioni, Aree Vita, Ispirazione, Statistiche, Negozio, Progetti, Obi
 - SettingsDrawer: solo CRUD abitudini (progetti hanno pagina dedicata)
 - Per nuove pagine/componenti UI: invocare skill `frontend-design` per design production-grade
 
+## VERIFICA WEBAPP — OBBLIGATORIO
+Dopo modifiche a webapp, eseguire ENTRAMBI:
+1. `npm run build` — verifica TypeScript
+2. `npm run lint` — verifica regole React/ESLint
+Solo `build` NON basta — lint cattura anti-pattern che build ignora.
+
 ## DOPO OGNI ERRORE — OBBLIGATORIO
 Quando un bug viene trovato e fixato, aggiungere SUBITO nella sezione
 "ERRORI NOTI DA NON RIPETERE" sopra: descrizione errore + FIX.

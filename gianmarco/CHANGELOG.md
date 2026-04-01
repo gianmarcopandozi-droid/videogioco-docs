@@ -75,3 +75,15 @@
 - Seed Francesco + script setup aggiornato con sed token
 - Docs setup Francesco + Claude.ai
 - Pulizia: 20 duplicati inspiration + 9 task vecchie
+
+## 2026-04-01 (sera) — Sessione 4c
+- Fix achievements 400 (order by name, not created_at)
+- Fix LIVELLO 0 flash (loading skeleton completo su Dashboard)
+- Antigravity integrato: audit UX + Batch 1 (shimmer, hover, color coding)
+- Antigravity: lint fixes (hoisting, eslint-disable)
+- Color coding aree vita sulle HabitCard
+- Regola: npm run lint obbligatorio dopo modifiche webapp
+- Dedup link con UNIQUE url + UPSERT + messaggio "già salvato"
+- Filtro persona basato su collaborators (non su task)
+- Edit/elimina collaboratori
+- Security audit completo
