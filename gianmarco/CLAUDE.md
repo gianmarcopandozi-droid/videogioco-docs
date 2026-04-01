@@ -92,6 +92,26 @@ Per OGNI nodo n8n aggiunto o modificato, verificare:
 - DDL (CREATE TABLE, ALTER TABLE) NON possibile via REST API anon key — serve SQL Editor
 - Le viste (views) richiedono DDL per essere create
 - `check constraint` è case-sensitive (es. `tipo` deve essere minuscolo: 'reel' non 'Reel')
+- GET che ritorna array vuoto `[]` → il nodo successivo NON viene eseguito anche con `alwaysOutputData: true`. FIX: usare UPSERT con `Prefer: resolution=ignore-duplicates` invece di GET+IF per dedup
+- Per dedup link: UNIQUE INDEX su url + UPSERT, NON fare GET separato per check
+
+### Classificatore
+- Il check `text.includes('status')` matcha anche il testo HTML delle pagine web. FIX: mettere il check link (`source === 'link'`) PRIMA di tutti gli altri check nel classificatore
+- Quando si inserisce codice JS in n8n via Python, le `$` vengono strippate. FIX: usare `\x24` per rappresentare `$` in Python (`\x24json.source` → `$json.source`)
+
+### Cron/Scheduling
+- `GENERIC_TIMEZONE=Europe/Rome` NON funziona su Railway. Convertire TUTTI i cron manualmente in UTC (CEST=UTC+2, CET=UTC+1)
+- Dopo OGNI import workflow su Railway: verificare che i cron workflow funzionino leggendo le esecuzioni entro 24h
+- Workflow importati da locale possono avere credenziali Notion/vecchie → falliscono su Railway. SEMPRE verificare dopo import
+
+### Video/Audio
+- Groq Whisper ha limite 25MB. Video Instagram possono superarlo. FIX: `onError: continueRegularOutput` su Download Video e Whisper Transcript — il riassunto arriva con solo caption
+- Whisper trascrive nomi tool in modo fonetico (Epify→Apify, Cloud→Claude). FIX: post-processing con dizionario di replace nel nodo Parse Risultato, NON nel prompt Groq (il modello piccolo lo ignora)
+- Groq LLaMA 8B fa riassunti generici. Usare 70B (`llama-3.3-70b-versatile`) per link analysis
+
+### Webapp
+- Inizializzare state con `[]` o `null`, MAI con mock data — causa flash di contenuto finto
+- Filtri persona: basarli sulla tabella `collaborators` per progetto, NON sulle task assegnate — altrimenti non appaiono collaboratori senza task
 
 ## REGOLE ASSOLUTE
 - "Segui procedura" / "segui le regole nostre" = esegui Step 0-5 della PROCEDURA OBBLIGATORIA sopra
@@ -211,6 +231,11 @@ Dashboard, Missioni, Aree Vita, Ispirazione, Statistiche, Negozio, Progetti, Obi
 - Acquisti webapp: POST shop_purchases + POST xp_log (coins_earned negativo) per deduction
 - SettingsDrawer: solo CRUD abitudini (progetti hanno pagina dedicata)
 - Per nuove pagine/componenti UI: invocare skill `frontend-design` per design production-grade
+
+## DOPO OGNI ERRORE — OBBLIGATORIO
+Quando un bug viene trovato e fixato, aggiungere SUBITO nella sezione
+"ERRORI NOTI DA NON RIPETERE" sopra: descrizione errore + FIX.
+Non aspettare il commit di fine sessione.
 
 ## FINE SESSIONE — OBBLIGATORIO
 ```bash
