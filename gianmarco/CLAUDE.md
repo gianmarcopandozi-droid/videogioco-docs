@@ -93,7 +93,9 @@ Per OGNI nodo n8n aggiunto o modificato, verificare:
 - Le viste (views) richiedono DDL per essere create
 - `check constraint` è case-sensitive (es. `tipo` deve essere minuscolo: 'reel' non 'Reel')
 - GET che ritorna array vuoto `[]` → il nodo successivo NON viene eseguito anche con `alwaysOutputData: true`. FIX: usare UPSERT con `Prefer: resolution=ignore-duplicates` invece di GET+IF per dedup
-- Per dedup link: UNIQUE INDEX su url + UPSERT, NON fare GET separato per check
+- Per dedup link: UNIQUE INDEX su url + INSERT con `return=representation` + `onError: continueRegularOutput`. Il 409 viene catturato, IF controlla `$json.id isNotEmpty`
+- `Prefer: resolution=ignore-duplicates` NON funziona se PostgREST non trova il UNIQUE CONSTRAINT (restituisce 409 invece di ignorare). FIX: usare solo `return=representation` e gestire il 409 con onError
+- URL Instagram: SEMPRE normalizzare PRIMA dell'insert (strip query params `?igsh=...`, `/reels/` → `/reel/`, trailing slash) per evitare duplicati dello stesso contenuto
 
 ### Classificatore
 - Il check `text.includes('status')` matcha anche il testo HTML delle pagine web. FIX: mettere il check link (`source === 'link'`) PRIMA di tutti gli altri check nel classificatore
@@ -140,6 +142,18 @@ Per OGNI nodo n8n aggiunto o modificato, verificare:
 - `scripts/fix-security.sh` — genera token e mostra comandi per tutti e 3 i fix
 - `supabase/fix-rls-select-only.sql` — script SQL per RLS (eseguire in SQL Editor)
 
+## CONDIVISIONE CHIAVI SEGRETE
+Quando l'utente deve condividere una chiave segreta (API key, token, password):
+- NON chiedere MAI di incollarla direttamente in chat
+- Proporre SEMPRE un metodo sicuro:
+  1. **File env per progetto:** `~/.env.videogioco` (caricato da .zshrc, in .gitignore globale)
+  2. **Variabile d'ambiente:** `export VAR_NAME=xxx` nel terminale, poi riferirsi a `$VAR_NAME`
+  3. **Comando con sostituzione:** fornire il comando con placeholder `<IL_TUO_TOKEN>` da eseguire manualmente
+- Se l'utente incolla comunque una chiave in chat: avvisare che resta nella cronologia e suggerire di ruotarla dopo
+- MAI salvare chiavi in file tracciati da git, CLAUDE.md, memory, o log
+- Per leggere le chiavi in script: `export $(grep -v '^#' ~/.env.videogioco | xargs)`
+- Per nuovi progetti: creare `~/.env.nomeprogetto` e aggiungere `source` in `~/.zshrc`
+
 ## REGOLE ASSOLUTE
 - "Segui procedura" / "segui le regole nostre" = esegui Step 0-5 della PROCEDURA OBBLIGATORIA sopra
 - Usa subagent (Agent tool) dove possibile per parallelizzare ricerca, diagnostica, e task indipendenti
@@ -160,15 +174,18 @@ Per OGNI nodo n8n aggiunto o modificato, verificare:
 - Dopo OGNI import/deploy su Railway: testare TUTTI i workflow cron leggendo le esecuzioni entro 24h
 - Dopo OGNI modifica a Code node: verificare che NON usi $helpers, fetch(), require()
 
-## WORKFLOW N8N ATTIVI
+## WORKFLOW N8N ATTIVI (ID = Railway)
 
-| Workflow | ID | Nodi | Trigger |
-|----------|-----|------|---------|
-| Telegram -> Videogioco v5 | mJ3FwZFyNXToRnS0 | 97 | Webhook Telegram (100% Supabase, vocali via Edge Function proxy) |
-| Reset Abitudini | 8CufFeuKa2hR1UqD | 5 | Cron 00:01 |
-| Morning Briefing | YxHPnGM0B57TMkST | 6 | Cron 08:00 |
-| Penalita Mezzanotte | GSg0ZoZ3rOtIAvkC | 4 | Cron 23:45 |
-| Check Achievement | VoldFmQJ8gpfIZg8 | 4 | Ogni ora |
+| Workflow | ID Railway | Trigger |
+|----------|-----------|---------|
+| Telegram -> Videogioco v5 | ldlVc7iNsXO5Pabt | Webhook Telegram |
+| Link Analyzer | DxurpUVCZQwzXIxQ | Webhook interno (da main dopo insert ispirazione) |
+| Knowledge Base Notturno | iLCLYxgIVqFt2UbX | Cron notturno |
+| Reset Abitudini | SEJOMbdFCOoI8h5Y | Cron 00:01 |
+| Morning Briefing | lVdcxKRsF9bkSkWj | Cron 08:00 |
+| Penalita Mezzanotte | rY1lHlS8SS9GgI6A | Cron 23:45 |
+| Check Achievement | ycDgcIRVy4f6bsIJ | Ogni ora |
+| Focus Reminder Timer | GGZjBosqjQ7q3AFy | Timer focus |
 
 ## COMANDI BOT TELEGRAM (21 comandi, tutti funzionanti)
 
@@ -273,7 +290,7 @@ Non aspettare il commit di fine sessione.
 ## FINE SESSIONE — OBBLIGATORIO
 ```bash
 # 1. Push repo privato
-git -C ~/Desktop/SISTEMA/videogioco add docs/ .claude/ webapp/src/ supabase/ scripts/
+git -C ~/Desktop/SISTEMA/videogioco add docs/ .claude/ webapp/src/ supabase/ scripts/ n8n-export/
 git -C ~/Desktop/SISTEMA/videogioco commit -m "sessione $(date +%Y-%m-%d): [descrizione breve]"
 git -C ~/Desktop/SISTEMA/videogioco push
 

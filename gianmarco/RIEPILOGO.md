@@ -1,7 +1,7 @@
-# Videogioco della Vita — Riepilogo v4
+# Videogioco della Vita — Riepilogo v5
 
-**Data:** 1 Aprile 2026
-**Stato:** Sistema completo, operativo su Railway + Vercel + Supabase
+**Data:** 2 Aprile 2026
+**Stato:** Sistema completo, operativo su Railway + Vercel + Supabase — security hardening in corso
 
 ---
 
@@ -49,9 +49,11 @@ characters, level_config, life_areas, habits, projects, activities, xp_log, habi
 ### Edge Functions
 - whisper-proxy — Proxy Groq Whisper (vocali + video transcription)
 
-### RLS ✅
-- 17 tabelle con user_id: SELECT aperto, UPDATE/DELETE solo user_id='gianmarco'
-- 9 tabelle config: accesso completo
+### RLS ⚠️ (hardening in corso)
+- Script `supabase/fix-rls-select-only.sql` pronto — SELECT-only per anon su 26 tabelle
+- Bloccato: n8n deve passare a service_role key prima di applicare RLS
+- whisper-proxy: auth con header x-proxy-token pronta, da deployare
+- Webhook Telegram: secret_token da configurare
 
 ---
 
@@ -72,9 +74,27 @@ characters, level_config, life_areas, habits, projects, activities, xp_log, habi
 
 ---
 
+## Webapp — Fix sessione 2 Aprile (mattina)
+
+| Fix | File | Impatto |
+|-----|------|---------|
+| Mock data solo DEV | supabase.ts | In PROD se DB down → errore, non dati finti |
+| Error handling | 9 pagine | Try/catch + UI errore + bottone "Riprova" |
+| Code splitting | App.tsx | React.lazy su 8 pagine, Statistics+Recharts (375KB) lazy |
+| useMemo filtri | Inspiration.tsx | Ricerca non ricalcola a ogni keystroke |
+| useMemo progress | Objectives.tsx | Da O(N²) a O(N) nel calcolo progresso |
+| Loading skeleton | Shop, Projects, Objectives | 3 pagine non avevano loading state |
+
 ## Cose rimaste
 
-### Da fare
+### Security (bloccate — serve intervento manuale)
+1. **MCP n8n su Railway** — serve API key da n8n Settings
+2. **Nodi n8n da anon a service_role key** — serve MCP o manuale su Railway
+3. **Eseguire fix-rls-select-only.sql** — dopo punto 2
+4. **Deploy whisper-proxy con auth token** — serve supabase CLI
+5. **Secret_token webhook Telegram** — eseguire manualmente con curl
+
+### Feature
 - **Setup Francesco** — script pronto, ~90 min
 - **Groq Vision screenshot video** — estrarre testo da slide/UI nei reel
 - **Board view Ispirazione** — colonne per progetto, drag & drop

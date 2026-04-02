@@ -76,6 +76,20 @@
 - Docs setup Francesco + Claude.ai
 - Pulizia: 20 duplicati inspiration + 9 task vecchie
 
+## 2026-04-02 (mattina) — Sessione 5b: Webapp Audit Batch
+
+### Webapp fixes (11 file, +320 righe)
+- Mock data condizionato a DEV only — in PROD errore reale, non dati finti
+- Error handling su 9 pagine — try/catch + UI errore + bottone "Riprova"
+- Code splitting con React.lazy su 8 pagine — Statistics+Recharts (375KB) caricati on demand
+- useMemo su Inspiration.tsx — filtri ricerca non ricalcolano a ogni keystroke
+- useMemo su Objectives.tsx — calcolo progresso da O(N²) a O(N)
+- Loading skeleton su Shop, Projects, Objectives — 3 pagine non avevano loading state
+
+### Commit
+- `a9df6eb` — Security hardening + audit Antigravity
+- `e4d4b6b` — Webapp audit batch — 4 fix
+
 ## 2026-04-02 (notte) — Sessione 5: Security Hardening + Antigravity Audit
 
 ### Audit completi con Antigravity (Claude Opus + Gemini)
