@@ -86,6 +86,8 @@ Per OGNI nodo n8n aggiunto o modificato, verificare:
 ### Switch nodes
 - Il Switch v3.4 crasha con operatore `object exists` su messaggi con array
   FIX: usare `{{ !!$json.field }}` con `boolean equals true`
+- IF v2.2 `string/isNotEmpty` valuta false anche quando il campo ha valore (bug con UUID da PostgREST)
+  FIX: usare `{{ !!$json.field }}` con `boolean equals true` — stesso pattern del Switch
 - `looseTypeValidation: true` necessario per gestire campi undefined
 
 ### Supabase REST API
