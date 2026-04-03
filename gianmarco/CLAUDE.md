@@ -102,6 +102,10 @@ Per OGNI nodo n8n aggiunto o modificato, verificare:
 ### Classificatore
 - Il check `text.includes('status')` matcha anche il testo HTML delle pagine web. FIX: mettere il check link (`source === 'link'`) PRIMA di tutti gli altri check nel classificatore
 - Quando si inserisce codice JS in n8n via Python, le `$` vengono strippate. FIX: usare `\x24` per rappresentare `$` in Python (`\x24json.source` → `$json.source`)
+- aliasMap 'bevuto'→['bere','acqua'] è troppo ambiguo — "ho bevuto prosecco" matchava "Bere acqua". FIX: rimosso, aggiunto pattern vizio esplicito per alcol
+- "ho fatto X" → completamento_task anche se X non è un task reale. FIX: verificare sempre contro lista _tasks da Supabase, se no match → manda a Groq
+- Groq 8B classifica come "abitudine" con match inventato non in lista. FIX: in Parse Groq, se match non valida → salva come nota azione_completata (non unknown/fallback)
+- Deploy workflow via REST API n8n: servono name + nodes + connections + settings (executionOrder, saveManualExecutions, callerPolicy)
 
 ### Cron/Scheduling
 - `GENERIC_TIMEZONE=Europe/Rome` NON funziona su Railway. Convertire TUTTI i cron manualmente in UTC (CEST=UTC+2, CET=UTC+1)

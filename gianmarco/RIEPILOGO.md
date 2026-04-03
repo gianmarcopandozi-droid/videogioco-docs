@@ -1,6 +1,6 @@
 # Videogioco della Vita — Riepilogo v5
 
-**Data:** 2 Aprile 2026
+**Data:** 3 Aprile 2026
 **Stato:** Sistema completo, operativo su Railway + Vercel + Supabase — security hardening in corso
 
 ---
@@ -17,11 +17,11 @@
 
 ---
 
-## Workflows n8n (7 attivi su Railway)
+## Workflows n8n (8 attivi su Railway)
 
 | Workflow | ID | Trigger | Stato |
 |----------|-----|---------|-------|
-| Telegram v5 | ldlVc7iNsXO5Pabt | Webhook | ✅ 103 nodi |
+| Telegram v5 | ldlVc7iNsXO5Pabt | Webhook | ✅ 106 nodi |
 | Reset Abitudini | SEJOMbdFCOoI8h5Y | Cron 22:01 UTC | ✅ |
 | Morning Briefing | lVdcxKRsF9bkSkWj | Cron 06:00 UTC | ✅ |
 | Penalita Mezzanotte | rY1lHlS8SS9GgI6A | Cron 21:45 UTC | ✅ |
@@ -85,11 +85,26 @@ characters, level_config, life_areas, habits, projects, activities, xp_log, habi
 | useMemo progress | Objectives.tsx | Da O(N²) a O(N) nel calcolo progresso |
 | Loading skeleton | Shop, Projects, Objectives | 3 pagine non avevano loading state |
 
+## Fix sessione 3 Aprile — Classificatore Bot
+
+| Fix | Nodo | Impatto |
+|-----|------|---------|
+| Rimosso 'bevuto' da aliasMap | Classifica | "Ho bevuto prosecco" non matcha più "Bere acqua" |
+| Aggiunto pattern vizio alcol | Classifica | Prosecco/vino/birra/spritz → vizio |
+| Aggiunto nodo SB Carica Task Aperti | Nuovo (106° nodo) | Task aperti disponibili nel classificatore |
+| Check _tasks per completamento | Classifica | "Ho fatto X" → completamento solo se X è task reale |
+| Prompt Groq con lista task | Groq Fallback | LLM ha contesto task + abitudini per classificare |
+| azione_completata → nota ✅ | Parse Groq | Azioni completate non in lista → salvate come nota |
+| Prompt Vision lista spesa | Groq Vision | Interpreta grafia (CAbote→carote) |
+| Alias camminare/passeggiata | Classifica | "Ho fatto una passeggiata" → abitudine se esiste |
+
+---
+
 ## Cose rimaste
 
-### Security (bloccate — serve intervento manuale)
-1. **MCP n8n su Railway** — serve API key da n8n Settings
-2. **Nodi n8n da anon a service_role key** — serve MCP o manuale su Railway
+### Security
+1. ✅ **MCP n8n su Railway** — API key configurata, deploy via REST API funzionante
+2. **Nodi n8n da anon a service_role key** — BLOCCATO: service_key in ~/.env.videogioco è duplicato anon key. Serve vera service_role dal Dashboard.
 3. **Eseguire fix-rls-select-only.sql** — dopo punto 2
 4. **Deploy whisper-proxy con auth token** — serve supabase CLI
 5. **Secret_token webhook Telegram** — eseguire manualmente con curl

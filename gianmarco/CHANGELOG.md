@@ -1,5 +1,26 @@
 # Changelog — Videogioco della Vita
 
+## 2026-04-03 — Sessione 5: Fix classificatore bot
+
+### Bot Telegram — Fix classificatore (3 bug risolti)
+- **BUG 1 fix**: "Ho bevuto un prosecco" → ora classificato come **vizio** (prima matchava abitudine "Bere acqua" via aliasMap ambiguo)
+- **BUG 2 fix**: "Ho fatto una passeggiata" → ora va a **Groq** per classificazione intelligente (prima classificato come completamento_task senza verifica)
+- **BUG 3 fix**: "Ieri ho annaffiato cactuso" → ora salvato come **nota ✅** (prima fallback 1/2/3)
+- Rimosso `'bevuto':['bere','acqua']` da aliasMap — troppo ambiguo
+- Aggiunto pattern vizio per alcol (prosecco/vino/birra/spritz/cocktail/etc.)
+- Aggiunto alias camminare/passeggiata/annaffiato nel classificatore
+- Nuovo nodo **SB Carica Task Aperti** — il classificatore ora ha contesto dei task aperti
+- Check "ho fatto X" verifica match contro task reali da Supabase
+- Prompt Groq Fallback migliorato con lista task + tipo `azione_completata`
+- Parse Groq: abitudine con match non valido → nota azione_completata (non fallback)
+- Prompt Groq Vision migliorato per interpretare grafia lista spesa
+- Workflow da 105 a 106 nodi, deployato su Railway via REST API
+
+### Security
+- Scoperto: `SUPABASE_SERVICE_KEY` è duplicato della anon key — RLS bloccato fino a fix manuale
+
+---
+
 ## 2026-03-31 — Sessione 3 (maratona completa)
 
 ### Infrastruttura

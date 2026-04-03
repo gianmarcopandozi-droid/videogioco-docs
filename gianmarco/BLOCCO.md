@@ -16,10 +16,17 @@ URL: https://webapp-nine-hazel.vercel.app
 ## 7. ✅ Deploy n8n su Railway
 URL: https://n8n-production-cfc6.up.railway.app
 
-## 8. FIX RLS Supabase (da implementare)
+## 8. FIX RLS Supabase (BLOCCATO — serve service_role key)
 
 ### Problema attuale
 Tutte le 24 tabelle hanno policy `FOR ALL USING (true)` — chiunque con la anon key può SELECT, INSERT, UPDATE, DELETE su tutto.
+
+### BLOCCO (3 Aprile 2026)
+`SUPABASE_SERVICE_KEY` in `~/.env.videogioco` è un duplicato della anon key (role:"anon").
+Serve la vera service_role key dal Supabase Dashboard → Settings → API.
+Senza questa key, non è possibile:
+- Aggiornare i nodi n8n da anon a service_role
+- Applicare RLS SELECT-only (i workflow n8n smetterebbero di funzionare)
 
 ### Piano
 1. **Cambiare tutte le policy a SELECT-only per anon:**
